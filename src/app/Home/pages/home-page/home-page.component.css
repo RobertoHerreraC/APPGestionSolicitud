@@ -1,0 +1,31 @@
+
+.content {
+    /* background-color: #f1f1ebff; */
+    background-color: var(--bs-gray-400);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.btn-block {
+    display: flex;
+    height: 100px;
+    width: 200px;
+    justify-content: center;
+    box-shadow: 2px 6px 20px 0.1px #777;
+    align-items: center;
+    margin: auto;
+
+}
+
+.custom-btn {
+    height: 100px;
+    width: 200px;
+    font-size: 20px; /* Puedes ajustar el tamaño de fuente según tus preferencias */
+    text-align: center; /* Alinea el texto horizontalmente en el centro */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 6px 20px 0.1px #777;
+  }

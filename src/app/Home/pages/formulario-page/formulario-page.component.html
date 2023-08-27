@@ -1,0 +1,193 @@
+<div class="container mt-4">
+    <form action="">
+        <!-- Informacion del FRAI -->
+        <div class="mb-4">
+            <!-- <h1 class="text-center">Solicitud de Acceso a la Información Pública</h1> -->
+            <label for="idInfoFrai" class="form-label fw-bold">1. FUNCIONARIO RESPONSABLE DE ENTREGA DE INFORMACION:</label>
+            <input class="form-control" type="text" name="FRAI" id="idInfoFrai" disabled [value]="nombreFRAI">
+        </div>
+        <!-- Tipo de persona -->
+        <div class="row mb-4">
+            <label class="form-label col-12 col-md-3 fw-bold">2. TIPO DE PERSONA:</label>
+            <div class="col-6 col-md-4">
+                <div class="form-check">
+                    <input type="radio" name="tipoPersonaRadio" class="form-check-input" id="idPersonaNatural" checked [(ngModel)]="tipoPersona" value="natural" >
+                    <label for="idPersonaNatural" class="form-check-label" >Persona Natural</label>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="form-check">
+                    <input type="radio" name="tipoPersonaRadio" class="form-check-input" id="idPersonaJuridica" [(ngModel)]="tipoPersona" value="juridica">
+                    <label for="idPersonaJuridica" class="form-check-label">Persona Juridica</label>
+                </div>
+            </div>
+        </div>
+        <hr>
+         <!--Seccion datos de persona juridica-->
+    <div class="row align-items-start gx-0 mb-2" *ngIf="tipoPersona === 'juridica'" >
+        <div class="col-12">
+            <label class="form-label fw-bold mt-2 mb-4">3. DATOS DE PERSONA JURIDICA:</label>
+
+        </div>
+        <div class="col-12">
+            <div class="row">
+                <div class="col-12 col-sm-2">
+                    <label for="idRuc" class="form-label fw-bold">R.U.C.</label>
+                </div>
+                <div class="col-12 col-sm-6 col-md-5 col-lg-4 mb-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="idRuc" aria-describedby="ayuda-ruc">
+                        <button type="button" class="btn btn-primary">Validar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 mt-3">
+            <div class="row">
+                <div class="col-12 col-sm-2">
+                    <label for="idRazonSocial" class="form-label fw-bold">Razón Social:</label>
+                </div>
+                <div class="col-12 col-sm-10">
+                    <input type="text" class="form-control" id="idRazonSocial" readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--Seccion persona natural-->
+    <div class="row gx-0 mb-2" *ngIf="tipoPersona === 'natural'">
+        <div class="col-12">
+            <label class="form-label fw-bold mt-2 mb-4">3. DATOS DE PERSONA NATURAL:</label>
+
+        </div>
+        <div class="col-12">
+            <!-- Busqueda -->
+            <div class="row align-items-start">
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+                    <label for="tipoDocumentoSelect" class="form-label fw-bold">Tipo y Nro de Documento:</label>
+                </div>
+                <div class="col-12 col-sm-6 col-md-2 mb-3">
+                    <select name="tipoDocumentoSelect" id="tipoDocumentoId" class="form-select">
+                        <option value="dni" class="form-select">DNI</option>
+                        <option value="ce" class="form-select">CE</option>
+                        <option value="otros" class="form-select">OTRO</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-12 col-md-6 col-lg-3 mb-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="idNroDocumento">
+                        <button type="button" class="btn btn-primary">Validar DNI</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 col-sm-6">
+                    <label for="apellidoPaterno" class="form-label fw-bold">Apellido Paterno:</label>
+                    <input type="text" name="apellidoPaterno" id="apellidoPaternoId" class="form-control mb-3">
+                </div>
+                <div class="col-12 col-sm-6">
+                    <label for="apellidoMaterno" class="form-label fw-bold">Apellido Materno:</label>
+                    <input type="text" name="apellidoMaterno" id="apellidoMaternoId" class="form-control mb-3">
+                </div>
+                <div class="col-12">
+                    <div class="row">
+                        <div class="col-12 col-sm-2 col-lg-1">
+                            <label for="nombres" class="form-label fw-bold">Nombres:</label>
+                        </div>
+                        <div class="col-12 col-sm-10 col-lg-11">
+                            <input type="text" name="nombres" id="nombresId" class="form-control mb-3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+   
+    <hr>
+    <!--Datos contacto-->
+    <div class="row  mb-2">
+        <div class="col-12">
+            <label class="form-label fw-bold mt-2 mb-4">4. DATOS DE CONTACTO:</label>
+        </div>
+        <div class="col-12 col-md-6">
+            <label for="direccion" class="form-label fw-bold">Dirección:</label>
+            <input type="text" name="direccion" id="direccionId" class="form-control mb-3">
+        </div>
+        <div class="col-12 col-md-6">
+            <label for="correo" class="form-label fw-bold">Correo Electrónico:</label>
+            <input type="text" name="correo" id="correoId" class="form-control">
+        </div>
+        <div class="col-12 col-md-6">
+            <label class="form-label fw-bold">Ubicación:</label>
+            <div class="d-flex">
+                <select name="departamento" id="departamentoId" class="form-select me-2">
+                    <option value="ica" class="form-select">ICA</option>
+                    <option value="lima" class="form-select">LIMA</option>
+                    <option value="arequipa" class="form-select">AREQUIPA</option>
+                </select>
+                <select name="provincia" id="provinciaId" class="form-select me-2">
+                    <option value="ica" class="form-select">ICA</option>
+                    <option value="lima" class="form-select">LIMA</option>
+                    <option value="arequipa" class="form-select">AREQUIPA</option>
+                </select>
+                <select name="distrito" id="distritoId" class="form-select">
+                    <option value="ica" class="form-select">ICA</option>
+                    <option value="lima" class="form-select">LIMA</option>
+                    <option value="arequipa" class="form-select">AREQUIPA</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <label for="tefCel" class="form-label fw-bold">Teléfono / Celular:</label>
+            <input type="text" name="tefCel" id="tefCelId" class="form-control">
+        </div>
+    </div>
+    <hr>
+    <!--detalle de la informacion solicitada-->
+    <div class="row mb-2">
+        <div class="col-12 ">
+            <label class="form-label fw-bold mt-2 mb-4">5. DETALLE DE LA INFORMACION SOLICITADA:</label>
+            <!--agregar aqui el combo-->
+            <div class="row mb-1">
+                <div class="col-xs-12 col-md-3 vertical-align">
+                    <label class="form-label fw-bold">Seleccionar tipo de entrega:</label>
+                </div>
+                <div class="col-xs-12 col-md-3">
+                    <select name="opcionesCombo" class="form-select custom-select">
+                        <option value="valor1">Valor 1</option>
+                        <option value="valor2">Valor 2</option>
+                        <option value="valor3">Valor 3</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 mt-2">
+            <label for="idInformacionSolicitada" class="form-label fw-bold">Información Solicitada:</label>
+            <textarea name="informacionSolicitada" id="idInformacionSolicitada" cols="30" rows="10"
+                class="form-control"></textarea>
+        </div>
+
+    </div>
+    <div class="row">
+        <div>
+            <div class="form-check mb-3">
+                <input type="checkbox" name="declaracionJurada" id="declaracionJuradaId"
+                    class="form-check-input">
+                <label for="declaracionJurada" class="form-check-label">Estoy de Acuerdo con la
+                    Declaracion Jurada</label>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+        <div class="row">
+            <div class="col-12 d-flex justify-content-center">
+                <div>
+                    <button type="submit" class="btn btn-primary btn-lg mb-3 mx-1">Enviar Solicitud</button>
+                    <button [routerLink]="'/home'" type="button" class="btn btn-secondary btn-lg mb-3 mx-1">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<!-- {{responsableFRAI | json}} -->
