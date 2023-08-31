@@ -1,5 +1,5 @@
-<div class="container mt-4">
-    <form action="">
+<div class="container mt-4" >
+    <form action="" [formGroup]="formularioSolicitud" (ngSubmit)="validateAndSubmit()">
         <!-- Informacion del FRAI -->
         <div class="mb-4">
             <!-- <h1 class="text-center">Solicitud de Acceso a la Información Pública</h1> -->
@@ -11,23 +11,24 @@
             <label class="form-label col-12 col-md-3 fw-bold">2. TIPO DE PERSONA:</label>
             <div class="col-6 col-md-4">
                 <div class="form-check">
-                    <input type="radio" name="tipoPersonaRadio" class="form-check-input" id="idPersonaNatural" checked [(ngModel)]="tipoPersona" value="natural" >
+                    <!-- <input type="radio" name="tipoPersonaRadio" class="form-check-input" id="idPersonaNatural" checked [(ngModel)]="tipoPersona" value="natural" > -->
+                    <input type="radio" name="tipoPersona" class="form-check-input" id="idPersonaNatural" formControlName="tipoPersona"  value="natural"  checked>
                     <label for="idPersonaNatural" class="form-check-label" >Persona Natural</label>
                 </div>
             </div>
             <div class="col-6 col-md-4">
                 <div class="form-check">
-                    <input type="radio" name="tipoPersonaRadio" class="form-check-input" id="idPersonaJuridica" [(ngModel)]="tipoPersona" value="juridica">
+                    <!-- <input type="radio" name="tipoPersonaRadio" class="form-check-input" id="idPersonaJuridica" [(ngModel)]="tipoPersona" value="juridica"> -->
+                    <input type="radio" name="tipoPersona" class="form-check-input" id="idPersonaJuridica" formControlName="tipoPersona" value="juridica">
                     <label for="idPersonaJuridica" class="form-check-label">Persona Juridica</label>
                 </div>
             </div>
         </div>
         <hr>
          <!--Seccion datos de persona juridica-->
-    <div class="row align-items-start gx-0 mb-2" *ngIf="tipoPersona === 'juridica'" >
+    <div class="row align-items-start gx-0 mb-2" *ngIf="this.formularioSolicitud.value.tipoPersona === 'juridica'"  formGroupName="personaJuridica">
         <div class="col-12">
             <label class="form-label fw-bold mt-2 mb-4">3. DATOS DE PERSONA JURIDICA:</label>
-
         </div>
         <div class="col-12">
             <div class="row">
@@ -36,8 +37,11 @@
                 </div>
                 <div class="col-12 col-sm-6 col-md-5 col-lg-4 mb-3">
                     <div class="input-group">
-                        <input type="text" class="form-control" id="idRuc" aria-describedby="ayuda-ruc">
-                        <button type="button" class="btn btn-primary">Validar</button>
+                            <input type="text" class="form-control" id="idRuc" formControlName="ruc"  [maxlength]=11 [class.is-invalid]="isControlInvalidPersona('personaJuridica','ruc')">               
+                        <button type="button" class="btn btn-primary" (click)="searchPersonData()">Validar</button>
+                        <small *ngIf="isControlInvalidPersona('personaJuridica','ruc')" class="text-danger">
+                            Por favor, ingresa el número de documento correcto
+                        </small>
                     </div>
                 </div>
             </div>
@@ -48,46 +52,49 @@
                     <label for="idRazonSocial" class="form-label fw-bold">Razón Social:</label>
                 </div>
                 <div class="col-12 col-sm-10">
-                    <input type="text" class="form-control" id="idRazonSocial" readonly>
+                    <input type="text" class="form-control" id="idRazonSocial" [readonly]="true" formControlName="razonSocial">
                 </div>
             </div>
         </div>
     </div>
 
     <!--Seccion persona natural-->
-    <div class="row gx-0 mb-2" *ngIf="tipoPersona === 'natural'">
+    <div class="row gx-0 mb-2" *ngIf="this.formularioSolicitud.value.tipoPersona === 'natural'"  formGroupName="personaNatural">
         <div class="col-12">
             <label class="form-label fw-bold mt-2 mb-4">3. DATOS DE PERSONA NATURAL:</label>
 
         </div>
         <div class="col-12">
             <!-- Busqueda -->
-            <div class="row align-items-start">
+            <div class="row align-items-start" >
                 <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
-                    <label for="tipoDocumentoSelect" class="form-label fw-bold">Tipo y Nro de Documento:</label>
+                    <label for="tipoDocumentoSelect" class="form-label fw-bold">Nro de Documento:</label>
                 </div>
                 <div class="col-12 col-sm-6 col-md-2 mb-3">
-                    <select name="tipoDocumentoSelect" id="tipoDocumentoId" class="form-select">
-                        <option value="dni" class="form-select">DNI</option>
-                        <option value="ce" class="form-select">CE</option>
-                        <option value="otros" class="form-select">OTRO</option>
+                    <select name="selectedOption" id="tipoDocumentoId" class="form-select" formControlName="selectedOption" (change)="onComboChange()">
+                        <option value="DNI" class="form-select" selected>DNI</option>
+                        <option value="CE" class="form-select">CE</option>
+                        <option value="OTRO" class="form-select">OTRO</option>
                     </select>
                 </div>
                 <div class="col-12 col-sm-12 col-md-6 col-lg-3 mb-3">
                     <div class="input-group">
-                        <input type="text" class="form-control" id="idNroDocumento">
-                        <button type="button" class="btn btn-primary">Validar DNI</button>
+                        <input type="text" class="form-control" id="idNroDocumento" formControlName="nroDocumento" [maxlength]="getMaxlength()" [class.is-invalid]="isControlInvalidPersona('personaNatural','nroDocumento')">
+                        <button type="button" class="btn btn-primary " [disabled]="isButtonDisabled"  (click)="searchPersonData()">Validar DNI</button>
+                        <small *ngIf="isControlInvalidPersona('personaNatural','nroDocumento')" class="text-danger">
+                            Por favor, ingresa el número de documento correcto
+                        </small>
                     </div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-12 col-sm-6">
                     <label for="apellidoPaterno" class="form-label fw-bold">Apellido Paterno:</label>
-                    <input type="text" name="apellidoPaterno" id="apellidoPaternoId" class="form-control mb-3">
+                    <input type="text" name="apellidoPaterno" id="apellidoPaternoId" class="form-control mb-3" [readonly]="!isButtonDisabled" formControlName="apellidoPaterno" >
                 </div>
                 <div class="col-12 col-sm-6">
                     <label for="apellidoMaterno" class="form-label fw-bold">Apellido Materno:</label>
-                    <input type="text" name="apellidoMaterno" id="apellidoMaternoId" class="form-control mb-3">
+                    <input type="text" name="apellidoMaterno" id="apellidoMaternoId" class="form-control mb-3" [readonly]="!isButtonDisabled" formControlName="apellidoMaterno">
                 </div>
                 <div class="col-12">
                     <div class="row">
@@ -95,7 +102,7 @@
                             <label for="nombres" class="form-label fw-bold">Nombres:</label>
                         </div>
                         <div class="col-12 col-sm-10 col-lg-11">
-                            <input type="text" name="nombres" id="nombresId" class="form-control mb-3">
+                            <input type="text" name="nombres" id="nombresId" class="form-control mb-3" [readonly]="!isButtonDisabled" formControlName="nombres" >
                         </div>
                     </div>
                 </div>
@@ -110,27 +117,33 @@
             <label class="form-label fw-bold mt-2 mb-4">4. DATOS DE CONTACTO:</label>
         </div>
         <div class="col-12 col-md-6">
-            <label for="direccion" class="form-label fw-bold">Dirección:</label>
-            <input type="text" name="direccion" id="direccionId" class="form-control mb-3">
+            <label for="direccion" class="form-label fw-bold" >Dirección:</label>
+            <input type="text" name="direccion" id="direccionId" class="form-control mb-3" formControlName="direccion" [class.is-invalid]="isControlInvalid('direccion')">
+            <small *ngIf="isControlInvalid('direccion')" class="text-danger">
+                Por favor, una dirección
+            </small>
         </div>
         <div class="col-12 col-md-6">
             <label for="correo" class="form-label fw-bold">Correo Electrónico:</label>
-            <input type="text" name="correo" id="correoId" class="form-control">
+            <input type="text" name="correo" id="correoId" class="form-control" formControlName="correo" [class.is-invalid]="isControlInvalid('correo')">
+            <small *ngIf="isControlInvalid('correo')" class="text-danger">
+                Por favor, un correo electrónico
+            </small>
         </div>
         <div class="col-12 col-md-6">
             <label class="form-label fw-bold">Ubicación:</label>
             <div class="d-flex">
-                <select name="departamento" id="departamentoId" class="form-select me-2">
+                <select name="departamento" id="departamentoId" formControlName="departamento" class="form-select me-2">
                     <option value="ica" class="form-select">ICA</option>
                     <option value="lima" class="form-select">LIMA</option>
                     <option value="arequipa" class="form-select">AREQUIPA</option>
                 </select>
-                <select name="provincia" id="provinciaId" class="form-select me-2">
+                <select name="provincia" id="provinciaId" class="form-select me-2" formControlName="provincia">
                     <option value="ica" class="form-select">ICA</option>
                     <option value="lima" class="form-select">LIMA</option>
                     <option value="arequipa" class="form-select">AREQUIPA</option>
                 </select>
-                <select name="distrito" id="distritoId" class="form-select">
+                <select name="distrito" id="distritoId" class="form-select" formControlName="distrito">
                     <option value="ica" class="form-select">ICA</option>
                     <option value="lima" class="form-select">LIMA</option>
                     <option value="arequipa" class="form-select">AREQUIPA</option>
@@ -139,7 +152,10 @@
         </div>
         <div class="col-12 col-md-6">
             <label for="tefCel" class="form-label fw-bold">Teléfono / Celular:</label>
-            <input type="text" name="tefCel" id="tefCelId" class="form-control">
+            <input type="text" name="tefCel" id="tefCelId" class="form-control" formControlName="celular" [class.is-invalid]="isControlInvalid('celular')" [maxlength]=10>
+            <small *ngIf="isControlInvalid('celular')" class="text-danger">
+                Por favor, ingrese un telefono o celular
+            </small>
         </div>
     </div>
     <hr>
@@ -153,18 +169,24 @@
                     <label class="form-label fw-bold">Seleccionar tipo de entrega:</label>
                 </div>
                 <div class="col-xs-12 col-md-3">
-                    <select name="opcionesCombo" class="form-select custom-select">
-                        <option value="valor1">Valor 1</option>
-                        <option value="valor2">Valor 2</option>
-                        <option value="valor3">Valor 3</option>
+                    <select name="formaEntregaID" class="form-select custom-select" id="formaEntrega" formControlName="formaEntregaID">
+                        <!-- <option value="valor2">Valor 2</option>
+                        <option value="valor3">Valor 3</option>  -->
+                        <option *ngFor="let forma of formasEntrega" [value]="forma.formaEntregaId">{{ forma.descripcion }}</option>
                     </select>
+                    <small *ngIf="isControlInvalid('formaEntregaID')" class="text-danger">
+                        Por favor, seleccione una forma de entrega.
+                    </small>
                 </div>
             </div>
         </div>
         <div class="col-12 mt-2">
             <label for="idInformacionSolicitada" class="form-label fw-bold">Información Solicitada:</label>
             <textarea name="informacionSolicitada" id="idInformacionSolicitada" cols="30" rows="10"
-                class="form-control"></textarea>
+                class="form-control" formControlName="informacionSolicitada" [class.is-invalid]="isControlInvalid('informacionSolicitada')"></textarea>
+                <small *ngIf="isControlInvalid('informacionSolicitada')" class="text-danger">
+                    Por favor, ingrese la Información que requiere.
+                </small>
         </div>
 
     </div>
@@ -172,10 +194,14 @@
         <div>
             <div class="form-check mb-3">
                 <input type="checkbox" name="declaracionJurada" id="declaracionJuradaId"
-                    class="form-check-input">
-                <label for="declaracionJurada" class="form-check-label">Estoy de Acuerdo con la
-                    Declaracion Jurada</label>
+                    class="form-check-input"  formControlName="declaracionJurada" [class.is-invalid]="isControlInvalid('declaracionJurada')" required>
+                <label for="declaracionJuradaId" class="form-check-label">Estoy de Acuerdo con la
+                    <a href="http://" target="_blank" rel="noopener noreferrer">Declaracion Jurada</a></label>
+                    
             </div>
+            <small *ngIf="isControlInvalid('declaracionJurada')" class="text-danger">
+                Debes aceptar antes de enviar.
+            </small>
         </div>
     </div>
 
@@ -184,10 +210,25 @@
             <div class="col-12 d-flex justify-content-center">
                 <div>
                     <button type="submit" class="btn btn-primary btn-lg mb-3 mx-1">Enviar Solicitud</button>
-                    <button [routerLink]="'/home'" type="button" class="btn btn-secondary btn-lg mb-3 mx-1">Cancelar</button>
+                    <button [routerLink]="'/home'" type="submit" class="btn btn-secondary btn-lg mb-3 mx-1">Cancelar</button>
                 </div>
             </div>
         </div>
     </form>
 </div>
 <!-- {{responsableFRAI | json}} -->
+<h3>formulario</h3>
+<pre>
+    <!-- Estado:{{formularioSolicitud.valid}} -->
+    <br>
+    Statud:{{formularioSolicitud.status}}
+</pre>
+<pre>
+    {{formularioSolicitud.value | json}}
+</pre>
+<p>
+    <!-- {{tipoPersonaSeleccionada}} -->
+</p>
+<p>
+    <!-- {{formularioSolicitud.get('nroDocumento')!.valid}} -->
+</p>
