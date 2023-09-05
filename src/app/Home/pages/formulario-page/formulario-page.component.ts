@@ -7,7 +7,11 @@ import { PersonaApiService } from 'src/app/service/persona-api.service';
 import { TipoEntregaService } from 'src/app/service/tipo-entrega.service';
 import { TipoEntrega } from 'src/app/interfaces/tipo-entrega';
 import { SolicitudAlta } from 'src/app/interfaces/solicitud-alta';
-
+import { Responsable } from 'src/app/interfaces/responsable';
+import { forkJoin } from 'rxjs';
+import { PlazoService } from 'src/app/service/plazo.service';
+import { Plazo } from 'src/app/interfaces/plazo';
+import { SolicitudService } from 'src/app/service/solicitud.service';
 @Component({
     selector: 'app-formulario-page',
     templateUrl: './formulario-page.component.html',
@@ -16,15 +20,22 @@ import { SolicitudAlta } from 'src/app/interfaces/solicitud-alta';
 
 export class FormularioPageComponent implements OnInit {
     // solicitudAlta!: SolicitudAlta;
+
+    solicitudDatosAlta! : SolicitudAlta;
+
     nombreFRAI: string = "No se ha propocionados datos del responsable";
     formasEntrega: TipoEntrega[] = [];
     formaEntregaSeleccionada: number = 0;
 
     idFrai: number = 0;
+    idMpv: number = 0;
+    idResponsableClasificacion : number = 0;
+    plazoActual : Plazo; 
+
     tipoDocumentoSeleccionado: string = 'DNI';
     // tipoPersonaSeleccionada: string = 'natural';
     formularioSolicitud: FormGroup = new FormGroup({});
-    isButtonDisabled: boolean = this.formularioSolicitud.value.selectedOption === 'DNI';
+    isButtonDisabled: boolean = this.formularioSolicitud.value.tipoDocumento === 'DNI';
     
 
 
@@ -32,14 +43,16 @@ export class FormularioPageComponent implements OnInit {
         private fb: FormBuilder,
         private _responsableServicio: ResponsableService,
         private _tipoEntrega: TipoEntregaService,
-        private _personaAPI: PersonaApiService
+        private _personaAPI: PersonaApiService,
+        private _plazoServicio: PlazoService,
+        private _solicitudService:SolicitudService
     ){
         this.formularioSolicitud = this.fb.group({
             tipoPersona: ['natural'],
 
             personaNatural: this.fb.group({
                 nroDocumento: ['', [Validators.required,Validators.maxLength(8), Validators.pattern('[0-9]{8}')]],
-                selectedOption: ['DNI'],
+                tipoDocumento: ['DNI'],
                 nombres:    ['', [ Validators.required ]],
                 apellidoPaterno:    ['', [ Validators.required ]],
                 apellidoMaterno:    ['', [ Validators.required ]],
@@ -55,7 +68,7 @@ export class FormularioPageComponent implements OnInit {
             distrito: ['', Validators.required],
             direccion:  ['', [Validators.minLength(10), Validators.required ]],
             correo:  ['', [Validators.minLength(6), Validators.required, Validators.email]],
-            celular:  ['', [Validators.minLength(10), Validators.required, Validators.pattern('[0-9]{10}')]],
+            celular:  ['', [Validators.minLength(6), Validators.required, Validators.maxLength(12), Validators.pattern('^[0-9]*$')]],
             informacionSolicitada:  ['', [Validators.minLength(6), Validators.required]],
             declaracionJurada: [false],
         });
@@ -67,21 +80,29 @@ export class FormularioPageComponent implements OnInit {
         });
 
         const tp = this.formularioSolicitud.get('personaNatural')!;
-        tp.get('selectedOption')!.valueChanges.subscribe((newValue) => {
+        tp.get('tipoDocumento')!.valueChanges.subscribe((newValue) => {
             this.tipoDocumentoSeleccionado = newValue;
             this.updateValidators();
         });
+
+        this.plazoActual = {
+            diasProrroga: 0,
+            diasPlazoMaximo: 0,
+
+        }
+
     }
     
 
     //UTILIDADES
     //Actualizar las validaciones de persona natural y juridica
     private updateValidatorsTipoPersona(tipo:string) {
+        
         const personaNatural = this.formularioSolicitud.get('personaNatural')!;
         const personaJuridica = this.formularioSolicitud.get('personaJuridica')!;
 
         const nroDocumento = personaNatural.get('nroDocumento')!;
-        const selectedOption = personaNatural.get('selectedOption')!;
+        const tipoDocumento = personaNatural.get('tipoDocumento')!;
         const nombre =personaNatural.get('nombres')!;
         const apellidoPaterno = personaNatural.get('apellidoPaterno')!;
         const apellidoMaterno = personaNatural.get('apellidoMaterno')!;
@@ -94,7 +115,7 @@ export class FormularioPageComponent implements OnInit {
 
         if (tipo === 'natural' ) {
             
-            selectedOption.setValue('DNI');
+            tipoDocumento.setValue('DNI');
 
             nroDocumento.setValue('');
             nroDocumento.clearValidators();
@@ -128,7 +149,7 @@ export class FormularioPageComponent implements OnInit {
             this.limpiarFormulario();
 
         } else if (tipo === 'juridica') {
-            selectedOption.setValue('DNI');
+            tipoDocumento.setValue('DNI');
 
             nroDocumento.setValue('');
             nroDocumento.clearValidators();
@@ -184,6 +205,7 @@ export class FormularioPageComponent implements OnInit {
     }
 
 
+    
     limpiarFormulario():void{
         const direccion = this.formularioSolicitud.get('direccion')!;
         const correo = this.formularioSolicitud.get('correo')!;
@@ -206,44 +228,71 @@ export class FormularioPageComponent implements OnInit {
 
     ngOnInit(): void {
         this.updateButtonState();
-        this.cargarFuncionarioResponsable();
-        this.cargarTipoEntrega();
+        this.cargarDatos();
     }
 
 
     //LLAMADAS A APIS
+    private cargarDatos(){
 
-    // Responsable
-    cargarFuncionarioResponsable(): void{
-        this._responsableServicio.lista(environment.idFrai).subscribe({
-            next:(data) => { 
-                if(data.status) {
-                    if(data.value.length > 0){
-                        this.nombreFRAI = `${data.value[0].nombres} ${data.value[0].apellidoPaterno} ${data.value[0].apellidoMaterno}`;
-                        this.idFrai = data.value[0].responsableId;
+        forkJoin([
+            this._responsableServicio.listaPorArea(environment.idFrai),
+            this._responsableServicio.listaPorArea(environment.idMvp),
+            this._responsableServicio.listaPorArea(environment.idResponsableClasificacion),
+            this._tipoEntrega.lista(),
+            this._plazoServicio.obtenerPlazo()
+          ]).subscribe({
+            next: ([resFrai, resMvp, resRC, resEntrega, resPlazo]) => {
+                if(resEntrega.status) {
+                    this.formasEntrega = resEntrega.value;
+                }
+
+                if(resFrai.status) {
+                    if(resFrai.value.length > 0){
+                        this.nombreFRAI = `${resFrai.value[0].responsable.nombres} ${resFrai.value[0].responsable.apellidoPaterno} ${resFrai.value[0].responsable.apellidoMaterno}`;
+                        this.idFrai = resFrai.value[0].responsableID;
                         this.formularioSolicitud.get('fraiId')!.setValue(this.idFrai);
-                        // this.solicitudAlta.FraiId = this.idFrai;
                     }
                 }
-            },
-            error:(e)=>{}
-        })
-    }
 
-    //Tipo de entrega
-    cargarTipoEntrega(): void{
-        this._tipoEntrega.lista().subscribe({
-            next:(data) => { 
-                if(data.status) {
-                    if(data.value.length > 0){
-                        this.formasEntrega = data.value;
+                if(resMvp.status) {
+                    if(resMvp.value.length > 0){
+                        this.idMpv = resMvp.value[0].responsableID;
                     }
                 }
-            },
-            error:(e)=>{}
-        })
-    }
 
+                if(resRC.status) {
+                    if(resRC.value.length > 0){
+                        this.idResponsableClasificacion = resRC.value[0].responsableID;
+                    }
+                }
+
+                if(resEntrega.status) {
+                    if(resEntrega.value.length > 0){
+                        this.formasEntrega = resEntrega.value;
+                    }
+                }
+
+                if(resPlazo.status){
+                    this.plazoActual = resPlazo.value;
+                }
+                console.log(resFrai);
+                console.log(resMvp);
+                console.log(resRC);
+                console.log(resEntrega);
+                console.log(this.plazoActual);
+
+            },
+            error: error => {
+                // Handle error
+                console.error('Error al cargar datos:', error);
+              },
+              complete: () => {
+                // Handle completion
+              }
+        });
+
+    } 
 
     // OTROS
     onComboChange() {        
@@ -252,12 +301,12 @@ export class FormularioPageComponent implements OnInit {
 
     private updateButtonState() {
         const personaNatural = this.formularioSolicitud.get('personaNatural')!;
-        this.isButtonDisabled = personaNatural.get('selectedOption')!.value !== 'DNI';
+        this.isButtonDisabled = personaNatural.get('tipoDocumento')!.value !== 'DNI';
     }
 
     getMaxlength() {
         const personaNatural = this.formularioSolicitud.get('personaNatural')!;
-        const nroDocumento = personaNatural.get('selectedOption')!.value;
+        const nroDocumento = personaNatural.get('tipoDocumento')!.value;
         if (nroDocumento === 'DNI') {
           return 8;
         } else if (nroDocumento === 'CE') {
@@ -272,7 +321,9 @@ export class FormularioPageComponent implements OnInit {
     //Validar busqueda persona natural y juridica
     async searchPersonData() {
         const personaNatural = this.formularioSolicitud.get('personaNatural')!;
+        const personaJuridica = this.formularioSolicitud.get('personaJuridica')!;
         const controlNroDocumento = personaNatural.get('nroDocumento')!;
+        const controlNroRuc = personaJuridica.get('ruc')!;
         
         if(this.formularioSolicitud.value.tipoPersona === 'natural'){
             if(controlNroDocumento.valid){
@@ -295,11 +346,24 @@ export class FormularioPageComponent implements OnInit {
             }
 
         }else if(this.formularioSolicitud.value.tipoPersona === 'juridica'){
-            // if(this.formularioSolicitud.get('ruc')!.valid){
-            //     console.log("buscar ruc en api")
-            // }else{
-            //     console.log("datos incorrectos")
-            // }
+            if(controlNroRuc.valid){
+                
+                this._personaAPI.validarRuc(controlNroRuc.value).subscribe({
+                    next: (data) => {
+                    //   console.log(data);
+                      personaJuridica.get('razonSocial')!.setValue(data.value.razonSocial);
+                      
+                    },
+                    error:(e) => {
+                      // Manejo de errores en caso de que la solicitud falle.
+                      console.error(e);
+                    }
+                });
+
+                
+            }else{
+                console.log("datos incorrectos")
+            }
         }
 
         // const dd = this.formularioSolicitud.get('nroDocumento')!;
@@ -325,24 +389,52 @@ export class FormularioPageComponent implements OnInit {
             console.log("registrar SOLICITUD");
             const personaNatural = this.formularioSolicitud.get('personaNatural');
             const personaJuridica = this.formularioSolicitud.get('personaJuridica');
-            const solicitud: SolicitudAlta = {
+            
+            
+            console.log(this.plazoActual.diasPlazoMaximo);
+            this.solicitudDatosAlta =  {
                 personaNatural: personaNatural?.valid ? personaNatural?.value : null,
                 personaJuridica: personaJuridica?.valid ? personaJuridica?.value : null,
                 FraiId: this.formularioSolicitud.get('fraiId')?.value,
                 correo: this.formularioSolicitud.get('correo')?.value,
                 telefono: this.formularioSolicitud.get('celular')?.value,
                 informacionSolicitada: this.formularioSolicitud.get('informacionSolicitada')?.value,
-                formaEntregaId: this.formularioSolicitud.get('formaEntregaID')?.value,
+                formaEntregaID: this.formularioSolicitud.get('formaEntregaID')?.value,
                 direccion: this.formularioSolicitud.get('direccion')?.value,
                 departamento: this.formularioSolicitud.get('departamento')?.value,
                 provincia: this.formularioSolicitud.get('provincia')?.value,
                 distrito: this.formularioSolicitud.get('distrito')?.value,
-
+                mpvID: this.idMpv,
+                responsableClasificacionID: this.idResponsableClasificacion,
+                plazoMaximo : this.plazoActual.diasPlazoMaximo,
+                prorroga : this.plazoActual.diasProrroga
               };
-              console.log(solicitud);
-        }else{
-            console.log("campos incompletos");
-        }
+
+              console.log(this.solicitudDatosAlta);
+
+              this._solicitudService.alta(this.solicitudDatosAlta).subscribe({
+                next: (resp) =>{
+                    console.log('Datos enviado con exito ',resp );
+                    this.limpiarFormulario();
+                  }, 
+                  error: error =>{
+                    console.error('Error al enviar datos: ',error);
+                  },
+                  complete: () => {
+                    console.log('complete ' );
+                  }
+              });
+                
+                
+        //         resp=>{
+        //         console.log('Datos enviado con exito ',resp )
+        //       }, error =>{
+        //         console.error('Error al enviar datos: ',error)
+        //       })
+
+        // }else{
+        //     console.log("campos incompletos");
+         }
     }
 
    

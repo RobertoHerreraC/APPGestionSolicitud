@@ -6,13 +6,17 @@ import { environment } from '../../environment/environment';
 
 @Injectable({providedIn: 'root'})
 export class PersonaApiService {
-    private urlApi:string = environment.endpoint + "APIExterno/";
+    private urlApi:string = environment.endpoint + "Persona/";
     
     constructor(private http: HttpClient) {    }
     
   
   
     validarDni(nroDocumento : string):Observable<ResponseApi>{
-      return this.http.get<ResponseApi>(`${this.urlApi}${nroDocumento}`)
+      return this.http.get<ResponseApi>(`${this.urlApi}reniec?dni=${nroDocumento}`)
+    }
+
+    validarRuc(nroRuc : string):Observable<ResponseApi>{
+      return this.http.get<ResponseApi>(`${this.urlApi}sunat?ruc=${nroRuc}`)
     }
 }

@@ -71,7 +71,7 @@
                     <label for="tipoDocumentoSelect" class="form-label fw-bold">Nro de Documento:</label>
                 </div>
                 <div class="col-12 col-sm-6 col-md-2 mb-3">
-                    <select name="selectedOption" id="tipoDocumentoId" class="form-select" formControlName="selectedOption" (change)="onComboChange()">
+                    <select name="tipoDocumento" id="tipoDocumentoId" class="form-select" formControlName="tipoDocumento" (change)="onComboChange()">
                         <option value="DNI" class="form-select" selected>DNI</option>
                         <option value="CE" class="form-select">CE</option>
                         <option value="OTRO" class="form-select">OTRO</option>
@@ -152,7 +152,7 @@
         </div>
         <div class="col-12 col-md-6">
             <label for="tefCel" class="form-label fw-bold">Teléfono / Celular:</label>
-            <input type="text" name="tefCel" id="tefCelId" class="form-control" formControlName="celular" [class.is-invalid]="isControlInvalid('celular')" [maxlength]=10>
+            <input type="text" name="tefCel" id="tefCelId" class="form-control" formControlName="celular" [class.is-invalid]="isControlInvalid('celular')" [maxlength]=12>
             <small *ngIf="isControlInvalid('celular')" class="text-danger">
                 Por favor, ingrese un telefono o celular
             </small>
@@ -172,7 +172,7 @@
                     <select name="formaEntregaID" class="form-select custom-select" id="formaEntrega" formControlName="formaEntregaID">
                         <!-- <option value="valor2">Valor 2</option>
                         <option value="valor3">Valor 3</option>  -->
-                        <option *ngFor="let forma of formasEntrega" [value]="forma.formaEntregaId">{{ forma.descripcion }}</option>
+                        <option *ngFor="let forma of formasEntrega" [value]="forma.formaEntregaID">{{ forma.descripcion }}</option>
                     </select>
                     <small *ngIf="isControlInvalid('formaEntregaID')" class="text-danger">
                         Por favor, seleccione una forma de entrega.

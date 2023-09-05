@@ -1,0 +1,52 @@
+/* css
+#sidebar {
+  background-color: #0065b0;
+}
+.nav-link{
+  background-color: #005499;
+}
+#sidebar a.nav-link {
+  color: rgb(255, 255, 255);
+}
+#sidebar a.nav-link.active {
+  background-color: #005499;
+}
+
+#sidebar div.collapse a.nav-link {
+  color: white;
+}
+
+#sidebar div.collapse.show {
+  background-color: #6c7277;
+}
+@media screen and (max-width: 576px) {
+  #sidebar {
+    position: fixed;
+    height: 100%;
+    width: 0;
+    top: 0;
+    left: 0;
+    z-index: 1032;
+    transition: all 0.3s;
+  }
+  #sidebar.active {
+    width: 80%;
+    display: block;
+  }
+} */
+
+
+/* .navbar {
+    font-size: 18px;
+  }
+  .nav-item {
+    margin-right: 10px;
+  }
+  @media (max-width: 768px) {
+    .navbar {
+      font-size: 14px;
+    }
+  } */
+
+
+

@@ -1,5 +1,6 @@
 export interface TipoEntrega {
-    formaEntregaId: number;
+    formaEntregaID: number;
     descripcion:    string;
     generaCosto:    number;
+    estado:    number;
 }
